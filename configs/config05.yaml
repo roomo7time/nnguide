@@ -1,0 +1,12 @@
+
+seed: 0
+arch: "resnet50"
+react_percentile: 0.95
+
+# hyperparam
+nnguide:
+  knn_k: 10
+
+
+
+
