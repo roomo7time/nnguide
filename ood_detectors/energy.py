@@ -5,8 +5,10 @@ from ood_detectors.interface import OODDetector
 
 class EnergyOODDetector(OODDetector):
 
-    def setup(self, feas_train, logits_train, labels_train=None, hyperparam: Dict = None):
+    def setup(self, hyperparam, train_model_outputs):
         pass
 
-    def infer(self, feas, logits):
+    def infer(self, model_outputs):
+        assert "logits" in model_outputs
+        logits = model_outputs["logits"]
         return torch.logsumexp(logits, dim=1)

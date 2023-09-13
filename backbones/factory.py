@@ -2,13 +2,13 @@ import torch
 import torchvision.transforms as transforms
 from torchvision.models import ViT_B_16_Weights, RegNet_Y_16GF_Weights, MobileNet_V2_Weights
 
-from models.resnet_supcon import ResNetSupCon
-from models.vit import ViT
-from models.regnet import RegNet
-from models.mobilenet import MobileNet
-from models.resnet import ResNet
+from backbones.resnet_supcon import ResNetSupCon
+from backbones.vit import ViT
+from backbones.regnet import RegNet
+from backbones.mobilenet import MobileNet
+from backbones.resnet import ResNet
 
-from models.verify_model_interface import verify_model_interface
+from backbones.verify_model_interface import verify_model_interface
 
 def load_model(arch_name, data_name):
     if data_name in ['ood-imagenet1k', 'ood-imagenet1k-v2-a', 'ood-imagenet1k-v2-b', 'ood-imagenet1k-v2-c']:

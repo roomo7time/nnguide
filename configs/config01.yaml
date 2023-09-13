@@ -1,6 +1,6 @@
 
 seed: 0
-arch: "resnet50-supcon"
+model: "resnet50-supcon"
 
 # hyperparam
 nnguide:

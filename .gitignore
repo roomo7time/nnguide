@@ -3,5 +3,6 @@
 __pycache__
 
 logs/
+logs-backup/
 saved_model_outputs/
 pretrained_models/*

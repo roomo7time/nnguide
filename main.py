@@ -7,15 +7,17 @@ import numpy as np
 
 from tabulate import tabulate
 
-from datasets_large import get_test_dataloaders
 from misc.utils_python import mkdir, import_yaml_config
-from models.factory import load_model
+
+from model_engines.factory import create_model_engine
+from ood_detectors.factory import create_ood_detector
+
 from eval_assets import save_performance
 
 def verify_args(args):
     if not hasattr(args, 'seed'):
         args.seed = 0
-    assert hasattr(args, 'arch')
+    assert hasattr(args, 'model')
     return args
 
 def get_args():
@@ -30,25 +32,24 @@ def get_args():
     parser.add_argument('--num_workers', '-nw', type=int, 
                         default=8, 
                         help='number of workers')
-    parser.add_argument('--data_name', '-d', type=str, 
-                        default='ood-imagenet1k', 
+    parser.add_argument('--train_data_name', '-td', type=str,  
+                        default='imagenet1k', 
+                        choices=['imagenet1k'],
+                        help='The data name for the in-distribution')
+    parser.add_argument('--id_data_name', '-id', type=str,  
+                        default='imagenet1k', 
                         choices=['ood-imagenet1k', 
                                  'ood-imagenet1k-v2-a', 
                                  'ood-imagenet1k-v2-b', 
                                  'ood-imagenet1k-v2-c'],
                         help='The data name for the in-distribution')
-    parser.add_argument('--split_idx', '-si', type=int, 
-                        default=0, 
-                        choices=[0, 1, 2, 3, 4],
-                        help='The index for the ood-distribution data: \
-                              0: iNaturalist\
-                              1: SUN \
-                              2: Places \
-                              3: Texture \
-                              4: OpenImage-O')
+    parser.add_argument('--ood_data_name', '-ood', type=str, 
+                        default='inaturalist', 
+                        choices=['inaturalist', 'sun', 'places', 'textures', 'openimage-o']
+                        )
     
     parser.add_argument("--ood_detectors", type=str, nargs='+', 
-                        default=['energy', 'nnguide'], 
+                        default=['energy'], 
                         help="List of OOD detectors")
 
     parser.add_argument('--batch_size', '-bs', type=int, 
@@ -65,13 +66,18 @@ def get_args():
     args.device = torch.device('cuda:%d' % (args.gpu_idx) if torch.cuda.is_available() else 'cpu')
 
     args = import_yaml_config(args, head='./configs')
-    args.log_dir_path = f"./logs/{args.data_name}/{args.config_name}"
-    args.save_dir_path = f"{args.save_root_path}/{args.data_name}/{args.config_name}"
+
+    args.log_dir_path = f"./logs/{args.config_name}/{args.train_data_name}/{args.id_data_name}"
+    args.train_save_dir_path = f"{args.save_root_path}/{args.config_name}/{args.train_data_name}"
+    args.id_save_dir_path = f"{args.save_root_path}/{args.config_name}/{args.id_data_name}"
+    args.ood_save_dir_path = f"{args.save_root_path}/{args.config_name}/{args.ood_data_name}"
 
     args = verify_args(args)
 
     mkdir(args.log_dir_path)
-    mkdir(args.save_dir_path)
+    mkdir(args.train_save_dir_path)
+    mkdir(args.id_save_dir_path)
+    mkdir(args.ood_save_dir_path)
 
     print(tabulate(list(vars(args).items()), headers=['arguments', 'values']))
 
@@ -92,7 +98,7 @@ def main():
     for oodd_name in args.ood_detectors:
         scores_set[oodd_name], labels, accs[oodd_name] = infer(args, oodd_name)
 
-    save_performance(scores_set, labels, accs, f"{args.log_dir_path}/split-{args.split_idx}.csv")
+    save_performance(scores_set, labels, accs, f"{args.log_dir_path}/ood-{args.ood_data_name}.csv")
     
 
 
@@ -100,73 +106,37 @@ def infer(args, ood_detector_name: str):
     
     print(f"Inferencing - OOD detector: {ood_detector_name}")
 
-    model, data_transform = load_model(args.arch, args.data_name)
-    print('pretrained model loaded')
+    model_engine = create_model_engine(args)
+    model_engine.set_model(args)
+    model_engine.set_dataloaders()
+    model_engine.train_model()
 
-    dataloader = {}
-    dataloader['train'], dataloader['id'], dataloader['ood'] \
-        = get_test_dataloaders(args.data_root_path, args.data_name, args.split_idx, args.batch_size, data_transform,
-                               num_workers=args.num_workers)
-
-    model = model.to(args.device)
-    model.eval()
-
-    '''
-    apply react
-    '''
-    from models.apply_react import apply_react
-    if hasattr(args, 'react_percentile'):
-        model = apply_react(model, dataloader['train'], args.device, args.save_dir_path, args.react_percentile)
-
-    '''
-    bankset confidence construction
-    '''
-    # extract train features
-    from models.assets import extract_features, load_features, save_features
-
-    feas = {}
-    logits = {}
-    labels = {}
-
-    folds = ['train', 'id', 'ood']
-
-    for fold in folds:
-        print(f"Preparing features - detector: {ood_detector_name} fold: {fold}")
-
-        fold_name = fold if fold in ['train', 'id'] else f"{fold}-{args.split_idx}"
-
-        try:
-            feas[fold], logits[fold], labels[fold] = load_features(args.save_dir_path, name=fold_name)
-        except:
-            print(f"Failed at loading features - detector: {ood_detector_name} fold: {fold_name}")
-            feas[fold], logits[fold], labels[fold] = extract_features(model, dataloader[fold], args.device)
-            save_features({"feas": feas[fold],
-                            "logits": logits[fold],
-                            "labels": labels[fold]
-                            },
-                            args.save_dir_path, 
-                            name=fold_name)
+    all_model_outputs = {}
+    all_model_outputs['train'], all_model_outputs['id'], all_model_outputs['ood'] = model_engine.get_model_outputs()
     
-    from ood_detectors.factory import load_ood_detector
-    ood_detector = load_ood_detector(ood_detector_name)
+    ood_detector = create_ood_detector(ood_detector_name)
 
     if hasattr(args, ood_detector_name):
         hyperparam = getattr(args, ood_detector_name)
     else:
         hyperparam = None
     
-    ood_detector.setup(feas['train'], logits['train'], labels['train'],
-                       hyperparam=hyperparam)
+    ood_detector.setup(hyperparam, all_model_outputs['train'])
+    
+    labels = {}
+    labels['id'] = all_model_outputs['id']['labels']
+    labels['ood'] = all_model_outputs['ood']['labels']
+    id_logits = all_model_outputs['id']['logits']
     
     _scores = {}
     for fold in ['id', 'ood']:
         print(f"Inferring scores - detector: {ood_detector_name} fold: {fold}")
-        _scores[fold] = ood_detector.infer(feas[fold], logits[fold])
+        _scores[fold] = ood_detector.infer(all_model_outputs[fold])
     
     scores = torch.cat([_scores['id'], _scores['ood']], dim=0).numpy()
     detection_labels = torch.cat([torch.ones_like(labels['id']), torch.zeros_like(labels['ood'])], dim=0).numpy()
     
-    pred_id = torch.max(logits['id'], dim=-1)[1]
+    pred_id = torch.max(id_logits, dim=-1)[1]
     acc = (pred_id == labels['id']).float().mean().numpy()
 
     return scores, detection_labels, acc

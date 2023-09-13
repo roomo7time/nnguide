@@ -1,6 +1,6 @@
 
 
-def load_ood_detector(name: str):
+def create_ood_detector(name: str):
 
     if name == "energy":
         from ood_detectors.energy import EnergyOODDetector

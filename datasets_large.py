@@ -112,42 +112,27 @@ class ImageNetOOD(Dataset):
         return out, reject_target, target
 
 def get_dataset(data_root_path, data_name, transform, 
-                train=True, ood=False, split_idx=None):
-    ood_names = {
-        0: 'inaturalist',
-        1: 'sun',
-        2: 'places',
-        3: 'textures',
-        4: 'openimage-o'
-    }
+                train=True, ood=False):
 
     if ood:
-        assert split_idx is not None
-        assert split_idx in ood_names.keys()
-        print(f"OOD data: {ood_names[split_idx]}")
-        return ImageNetOOD(data_root_path, ood_names[split_idx], transform)
+        print(f"OOD: {data_name}")
+        return ImageNetOOD(data_root_path, data_name, transform)
 
-    dataset = ImageNetID(data_root_path, data_name[4:], transform, train)
+    dataset = ImageNetID(data_root_path, data_name, transform, train)
 
     return dataset
 
 
-def get_test_dataloaders(data_root_path, data_name, split_idx, batch_size, transform,
+def get_dataloaders(data_root_path, train_data_name, id_data_name, ood_data_name, batch_size, transform,
                          num_workers=0, bankset_ratio=0.01):
 
-    if data_name in ['ood-imagenet1k',
-                     'ood-imagenet1k-v2-a', 
-                     'ood-imagenet1k-v2-b', 
-                     'ood-imagenet1k-v2-c']:
-        bank_name = 'ood-imagenet1k'
 
-
-    bankset_ind = get_dataset(data_root_path, bank_name, transform, 
-                              train=True, ood=False, split_idx=None)
-    queryset_ind = get_dataset(data_root_path, data_name, transform, 
-                               train=False, ood=False, split_idx=split_idx)
-    queryset_ood = get_dataset(data_root_path, data_name, transform, 
-                               train=False, ood=True, split_idx=split_idx)
+    bankset_ind = get_dataset(data_root_path, train_data_name, transform, 
+                              train=True, ood=False)
+    queryset_ind = get_dataset(data_root_path, id_data_name, transform, 
+                               train=False, ood=False)
+    queryset_ood = get_dataset(data_root_path, ood_data_name, transform, 
+                               train=False, ood=True)
 
     if bankset_ratio < 1.:
         subsample(bankset_ind, alpha=bankset_ratio)
