@@ -6,8 +6,10 @@ from ood_detectors.interface import OODDetector
 
 class MaxLogitOODDetector(OODDetector):
 
-    def setup(self, feas_train, logits_train, labels_train=None, hyperparam: Dict = None):
+    def setup(self, train_model_outputs: Dict, hyperparam: Dict = None):
         pass
 
-    def infer(self, feas, logits):
+    def infer(self, model_outputs: Dict):
+
+        logits = model_outputs['logits']
         return logits.max(dim=1)[0]

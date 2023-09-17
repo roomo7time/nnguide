@@ -6,8 +6,10 @@ from ood_detectors.interface import OODDetector
 
 class KLOODDetector(OODDetector):
 
-    def setup(self, feas_train, logits_train, labels_train=None, hyperparam: Dict = None):
+    def setup(self, train_model_outputs: Dict, hyperparam: Dict = None):
         pass
 
-    def infer(self, feas, logits):
+    def infer(self, model_outputs: Dict):
+
+        logits = model_outputs['logits']
         return F.cross_entropy(logits, torch.ones_like(logits)/logits.shape[-1], reduction='none')

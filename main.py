@@ -24,7 +24,7 @@ def verify_args(args):
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_name', '-cn', type=str, 
-                        default='config01',
+                        default='config03',
                         help='The name of configuration')
 
     parser.add_argument('--gpu_idx', '-g', type=int, 
@@ -50,7 +50,8 @@ def get_args():
                         )
     
     parser.add_argument("--ood_detectors", type=str, nargs='+', 
-                        default=['energy'], 
+                        # default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
+                        default=['energy', 'nnguide'], 
                         help="List of OOD detectors")
 
     parser.add_argument('--batch_size', '-bs', type=int, 
@@ -124,7 +125,7 @@ def infer(args, ood_detector_name: str):
     else:
         hyperparam = None
     
-    ood_detector.setup(hyperparam, all_model_outputs['train'])
+    ood_detector.setup(all_model_outputs['train'], hyperparam)
 
     _scores = {}
     for fold in ['id', 'ood']:

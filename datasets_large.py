@@ -124,7 +124,7 @@ def get_dataset(data_root_path, data_name, transform,
 
 
 def get_dataloaders(data_root_path, train_data_name, id_data_name, ood_data_name, batch_size, transform,
-                    num_workers=0, bankset_ratio=0.01):
+                    num_workers=0, bankset_ratio=0.01, shuffle_train_dataloader=False):
 
     bankset_ind = get_dataset(data_root_path, train_data_name, transform, 
                               train=True, ood=False)
@@ -136,7 +136,7 @@ def get_dataloaders(data_root_path, train_data_name, id_data_name, ood_data_name
     if bankset_ratio < 1.:
         subsample(bankset_ind, alpha=bankset_ratio)
 
-    bankloader_ind = DataLoader(bankset_ind, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+    bankloader_ind = DataLoader(bankset_ind, batch_size=batch_size, shuffle=shuffle_train_dataloader, num_workers=num_workers, pin_memory=True)
     queryloader_ind = DataLoader(queryset_ind, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
     queryloader_ood = DataLoader(queryset_ood, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
 

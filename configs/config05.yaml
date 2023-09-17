@@ -1,6 +1,6 @@
 
 seed: 0
-arch: "resnet50"
+model: "resnet50"
 react_percentile: 0.95
 
 # hyperparam

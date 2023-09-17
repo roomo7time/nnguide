@@ -35,29 +35,3 @@ class ViT(nn.Module):
 
         return feas, logits
 
-
-class Swin(nn.Module):
-    def __init__(self, arch_name='swin'):
-        super(Swin, self).__init__()
-
-        if arch_name == 'swin':
-            self.encoder = swin_s(weights=Swin_S_Weights.IMAGENET1K_V1)
-        elif arch_name == 'swin-b':
-            self.encoder = swin_b(weights=Swin_B_Weights.IMAGENET1K_V1)
-
-        self.fc = self.encoder.head
-        self.encoder.head = nn.Identity()
-
-    def forward(self, x):
-        x = self.encoder(x)
-        feas = x
-        logits = self.fc(x)
-
-        return feas, logits
-
-
-if __name__ == '__main__':
-    # model = ViT('vit')
-    model = Swin()
-    x = torch.randn((10, 3, 224, 224))
-    out = model(x)

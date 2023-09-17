@@ -7,12 +7,10 @@ class OODDetector(ABC):
 
     @abstractmethod
     def setup(self, 
-              feas_train: torch.Tensor, 
-              logits_train: torch.Tensor, 
-              labels_train: torch.Tensor = None, 
+              train_model_outputs: Dict,
               hyperparam: Dict = None):
         pass
 
     @abstractmethod
-    def infer(self, feas, logits):
+    def infer(self, model_outputs: Dict):
         pass
