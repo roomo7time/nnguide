@@ -24,7 +24,7 @@ def verify_args(args):
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_name', '-cn', type=str, 
-                        default='config03',
+                        default='config01',
                         help='The name of configuration')
 
     parser.add_argument('--gpu_idx', '-g', type=int, 
