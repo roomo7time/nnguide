@@ -1,9 +1,9 @@
 
 import torch
-import torchvision.transforms as transforms
 
-from backbones.resnet_supcon import ResNetSupCon
-from model_engines.interface import ModelEngine, verify_model_outputs
+
+from backbones.resnet_supcon import ResNetSupCon, DATA_TRANSFORM
+from model_engines.interface import ModelEngine
 from model_engines.assets import extract_features
 
 from datasets_large import get_dataloaders
@@ -14,13 +14,7 @@ class ResNetSupConModelEngine(ModelEngine):
         self._model = ResNetSupCon()
         state_dict = torch.load('./pretrained_models/resnet50-supcon.pt', map_location='cpu')['model_state_dict']
         msg = self._model.load_state_dict(state_dict, strict=False)            
-        self._data_transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                                 std=[0.229, 0.224, 0.225]),
-        ])
+        self._data_transform = DATA_TRANSFORM
     
     def set_dataloaders(self):
         
@@ -51,5 +45,4 @@ class ResNetSupConModelEngine(ModelEngine):
             all_model_outputs[fold]["logits"] = _tensor_dict["logits"]
             all_model_outputs[fold]["labels"] = _tensor_dict["labels"]
         
-            assert verify_model_outputs(all_model_outputs[fold])
         return all_model_outputs['train'], all_model_outputs['id'], all_model_outputs['ood']

@@ -10,6 +10,7 @@ from tabulate import tabulate
 from misc.utils_python import mkdir, import_yaml_config
 
 from model_engines.factory import create_model_engine
+from model_engines.interface import verify_model_outputs
 from ood_detectors.factory import create_ood_detector
 
 from eval_assets import save_performance
@@ -38,10 +39,10 @@ def get_args():
                         help='The data name for the in-distribution')
     parser.add_argument('--id_data_name', '-id', type=str,  
                         default='imagenet1k', 
-                        choices=['ood-imagenet1k', 
-                                 'ood-imagenet1k-v2-a', 
-                                 'ood-imagenet1k-v2-b', 
-                                 'ood-imagenet1k-v2-c'],
+                        choices=['imagenet1k', 
+                                 'imagenet1k-v2-a', 
+                                 'imagenet1k-v2-b', 
+                                 'imagenet1k-v2-c'],
                         help='The data name for the in-distribution')
     parser.add_argument('--ood_data_name', '-ood', type=str, 
                         default='inaturalist', 
@@ -99,8 +100,6 @@ def main():
         scores_set[oodd_name], labels, accs[oodd_name] = infer(args, oodd_name)
 
     save_performance(scores_set, labels, accs, f"{args.log_dir_path}/ood-{args.ood_data_name}.csv")
-    
-
 
 def infer(args, ood_detector_name: str):
     
@@ -112,7 +111,11 @@ def infer(args, ood_detector_name: str):
     model_engine.train_model()
 
     all_model_outputs = {}
-    all_model_outputs['train'], all_model_outputs['id'], all_model_outputs['ood'] = model_engine.get_model_outputs()
+    all_model_outputs['train'], all_model_outputs['id'], all_model_outputs['ood'] \
+        = model_engine.get_model_outputs()
+
+    for _, _model_outputs in all_model_outputs.items():
+        assert verify_model_outputs(_model_outputs)
     
     ood_detector = create_ood_detector(ood_detector_name)
 
@@ -122,18 +125,18 @@ def infer(args, ood_detector_name: str):
         hyperparam = None
     
     ood_detector.setup(hyperparam, all_model_outputs['train'])
-    
-    labels = {}
-    labels['id'] = all_model_outputs['id']['labels']
-    labels['ood'] = all_model_outputs['ood']['labels']
-    id_logits = all_model_outputs['id']['logits']
-    
+
     _scores = {}
     for fold in ['id', 'ood']:
         print(f"Inferring scores - detector: {ood_detector_name} fold: {fold}")
         _scores[fold] = ood_detector.infer(all_model_outputs[fold])
     
     scores = torch.cat([_scores['id'], _scores['ood']], dim=0).numpy()
+
+    labels = {}
+    labels['id'] = all_model_outputs['id']['labels']
+    labels['ood'] = all_model_outputs['ood']['labels']
+    id_logits = all_model_outputs['id']['logits']
     detection_labels = torch.cat([torch.ones_like(labels['id']), torch.zeros_like(labels['ood'])], dim=0).numpy()
     
     pred_id = torch.max(id_logits, dim=-1)[1]

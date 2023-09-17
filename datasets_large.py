@@ -124,8 +124,7 @@ def get_dataset(data_root_path, data_name, transform,
 
 
 def get_dataloaders(data_root_path, train_data_name, id_data_name, ood_data_name, batch_size, transform,
-                         num_workers=0, bankset_ratio=0.01):
-
+                    num_workers=0, bankset_ratio=0.01):
 
     bankset_ind = get_dataset(data_root_path, train_data_name, transform, 
                               train=True, ood=False)

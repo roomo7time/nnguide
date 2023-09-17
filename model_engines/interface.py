@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Tuple
 
 class ModelEngine(ABC):
 
@@ -41,15 +41,16 @@ class ModelEngine(ABC):
         pass
     
     @abstractmethod
-    def get_model_outputs(self):
+    def get_model_outputs(self) -> Tuple[Dict, Dict, Dict]:
         pass
-        
 
+def verify_model_outputs(model_outputs: Tuple) -> bool:
 
-def verify_model_outputs(model_outputs: Dict) -> bool:
     output_types = ['feas', 'logits', 'labels']
-
-    for output_type in output_types:
-        output_type in model_outputs
+    try:
+        for output_type in output_types:
+            output_type in model_outputs
+    except:
+        return False
 
     return True
