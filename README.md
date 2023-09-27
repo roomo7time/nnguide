@@ -1,6 +1,6 @@
-# Official Implementation of NNGuide
+# Nearest Neighbor Guidance for Out-of-Distribution Detection
 
-Paper: Nearest Neighbor Guidance for Out-of-Distribution Detection (arxiv)
+Paper: Nearest Neighbor Guidance for Out-of-Distribution Detection ([arxiv](https://arxiv.org/abs/2309.14888))
 
 ## Setup
 
