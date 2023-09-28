@@ -10,16 +10,18 @@ from tabulate import tabulate
 from misc.utils_python import mkdir, import_yaml_config
 
 from model_engines.factory import create_model_engine
-from model_engines.interface import verify_model_outputs
+from model_engines.interface import verify_model_outputs, get_model_outputs
 from model_engines.assets import load_model_outputs, save_model_outputs
 from ood_detectors.factory import create_ood_detector
 
 from eval_assets import save_performance
 
+from dataloaders.factory import get_id_dataloader, get_ood_dataloader
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', '-m', type=str, 
-                        default='resnet50-supcon',
+                        default='resnet50-react',
                         choices=[
                             'resnet50-supcon',
                             'resnet50-react',
@@ -51,7 +53,7 @@ def get_args():
                                  'imagenet1k-v2-c'],
                         help='The data name for the in-distribution')
     parser.add_argument('--ood_data_name', '-ood', type=str, 
-                        default='sun', 
+                        default='inaturalist', 
                         choices=['inaturalist', 'sun', 'places', 'textures', 'openimage-o']
                         )
     
@@ -115,6 +117,9 @@ def main():
 
 def evaluate(args, ood_detector_name: str):
     
+    '''
+    Executing model engine
+    '''
     print(f"[{args.model_name} / {ood_detector_name}]: running model...")
 
     model_engine = create_model_engine(args.model_name)
@@ -128,42 +133,63 @@ def evaluate(args, ood_detector_name: str):
         model = model_engine.train_model()
         if model:
             torch.save({"model": model}, args.model_save_path)
+    
+    save_dir_paths = {}
+    save_dir_paths['train'] = args.train_save_dir_path
+    save_dir_paths['id'] = args.id_save_dir_path
+    save_dir_paths['ood'] = args.ood_save_dir_path
 
+    model_outputs = {}
+    labels = {}
+    
     try:
-        model_outputs = load_model_outputs(args)
+        for fold in ['train', 'id', 'ood']:
+            model_outputs[fold] = torch.load(f"{save_dir_paths[fold]}/model_outputs_{fold}.pt")
+            labels[fold] = torch.load(f"{save_dir_paths[fold]}/labels_{fold}.pt")
     except:
-        model_outputs = {}
-        model_outputs['train'], model_outputs['id'], model_outputs['ood'] \
-            = model_engine.get_model_outputs()
-        save_model_outputs(args, model_outputs)
-    
-    for fold in ['train', 'id', 'ood']:
-        assert verify_model_outputs(model_outputs[fold])
+        dataloaders = {}
+        dataloaders['train'] = model_engine.get_train_dataloader()
+        data_transform = model_engine.get_data_transform()
 
+        dataloaders['id'] = get_id_dataloader(args.data_root_path, args.id_data_name, args.batch_size, data_transform, num_workers=args.num_workers)
+        dataloaders['ood'] = get_ood_dataloader(args.data_root_path, args.ood_data_name, args.batch_size, data_transform, num_workers=args.num_workers)
+
+        for fold in ['train', 'id', 'ood']:
+            _model_outputs, _labels = get_model_outputs(dataloaders[fold], model_engine.infer)
+            assert verify_model_outputs(_model_outputs)
+            torch.save(_model_outputs, f"{save_dir_paths[fold]}/model_outputs_{fold}.pt")
+            torch.save(_labels, f"{save_dir_paths[fold]}/labels_{fold}.pt")
+
+            model_outputs[fold] = _model_outputs
+            labels[fold] = _labels
+
+    '''
+    Executing ood detector
+    '''
     print(f"[{args.model_name} / {ood_detector_name}]: running detector...")
-    
+
     saved_detector_path = f"{args.detector_save_dir_path}/{ood_detector_name}.pt"
     try:
         ood_detector = torch.load(saved_detector_path)["detector"]
     except:
         ood_detector = create_ood_detector(ood_detector_name)
-        ood_detector.setup(args, model_outputs['train'])
+        ood_detector.setup(args, model_outputs['train'], labels['train'])
         torch.save({"detector": ood_detector}, saved_detector_path)
 
+    '''
+    Evaluating metrics
+    '''
     print(f"[{args.model_name} / {ood_detector_name}]: evaluating metrics...")
     id_scores = ood_detector.infer(model_outputs['id'])
     ood_scores = ood_detector.infer(model_outputs['ood'])
     
     scores = torch.cat([id_scores, ood_scores], dim=0).numpy()
-
-    labels = {}
-    labels['id'] = model_outputs['id']['labels']
-    labels['ood'] = model_outputs['ood']['labels']
+    
     id_logits = model_outputs['id']['logits']
     detection_labels = torch.cat([torch.ones_like(labels['id']), torch.zeros_like(labels['ood'])], dim=0).numpy()
     
-    pred_id = torch.max(id_logits, dim=-1)[1]
-    acc = (pred_id == labels['id']).float().mean().numpy()
+    preds_id = torch.max(id_logits, dim=-1)[1]
+    acc = (preds_id == labels['id']).float().mean().numpy()
 
     return scores, detection_labels, acc
 

@@ -5,7 +5,7 @@ from torchvision.models import vit_b_16, ViT_B_16_Weights
 from model_engines.interface import ModelEngine
 from model_engines.assets import extract_features
 
-from dataloaders.datasets_large import get_dataloaders
+from dataloaders.factory import get_dataloaders
 
 class ViTModelEngine(ModelEngine):
     def set_model(self, args):

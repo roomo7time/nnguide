@@ -5,7 +5,7 @@ from torchvision.models import mobilenetv2, MobileNet_V2_Weights
 from model_engines.interface import ModelEngine
 from model_engines.assets import extract_features
 
-from dataloaders.datasets_large import get_dataloaders
+from dataloaders.factory import get_dataloaders
 
 class MobileNetModelEngine(ModelEngine):
     def set_model(self, args):

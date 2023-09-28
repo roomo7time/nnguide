@@ -31,17 +31,9 @@ def extract_features(model, dataloader, device):
 
     return {"feas": feas, "logits": logits, "labels": labels}
 
-def load_model_outputs(args):
-    model_outputs = {}
-
-    model_outputs['train'] = torch.load(f"{args.train_save_dir_path}/model_outputs_train.pt")
-    model_outputs['id'] = torch.load(f"{args.id_save_dir_path}/model_outputs_id.pt")
-    model_outputs['ood'] = torch.load(f"{args.ood_save_dir_path}/model_outputs_ood.pt")
-
+def load_model_outputs(saved_model_outputs_path):
+    model_outputs = torch.load(saved_model_outputs_path)
     return model_outputs
 
-def save_model_outputs(args, model_outputs):
-    
-    torch.save(model_outputs['train'], f"{args.train_save_dir_path}/model_outputs_train.pt")
-    torch.save(model_outputs['id'], f"{args.id_save_dir_path}/model_outputs_id.pt")
-    torch.save(model_outputs['ood'], f"{args.ood_save_dir_path}/model_outputs_ood.pt")
+def save_model_outputs(saved_model_outputs_path, model_outputs):
+    torch.save(model_outputs, saved_model_outputs_path)

@@ -6,7 +6,7 @@ from typing import Dict
 class OODDetector(ABC):
 
     @abstractmethod
-    def setup(self, args, train_model_outputs: Dict[str, torch.Tensor]):
+    def setup(self, args, train_model_outputs: Dict[str, torch.Tensor], train_labels: torch.Tensor):
         pass
 
     @abstractmethod

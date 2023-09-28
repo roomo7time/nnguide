@@ -4,7 +4,7 @@ import torch
 from model_engines.interface import ModelEngine
 from model_engines.assets import extract_features
 
-from dataloaders.datasets_large import get_dataloaders
+from dataloaders.factory import get_dataloaders
 
 class ResNet50SupConModelEngine(ModelEngine):
     def set_model(self, args):

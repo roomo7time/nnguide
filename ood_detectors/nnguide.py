@@ -6,7 +6,7 @@ from ood_detectors.assets import knn_score
 
 class NNGuideOODDetector(OODDetector):
 
-    def setup(self, args, train_model_outputs):
+    def setup(self, args, train_model_outputs, train_labels):
 
         logits_train = train_model_outputs['logits']
         feas_train = train_model_outputs['feas']
