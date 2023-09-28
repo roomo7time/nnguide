@@ -5,7 +5,7 @@ from torchvision.models import vit_b_16, ViT_B_16_Weights
 from model_engines.interface import ModelEngine
 from model_engines.assets import extract_features
 
-from datasets_large import get_dataloaders
+from dataloaders.datasets_large import get_dataloaders
 
 class ViTModelEngine(ModelEngine):
     def set_model(self, args):
@@ -17,6 +17,9 @@ class ViTModelEngine(ModelEngine):
             self._react_percentile = args.react_percentile
             self._train_save_dir_path = args.train_save_dir_path
     
+    def get_data_transform(self):
+        return self._data_transform
+    
     def set_dataloaders(self):
         
         self._dataloaders = {}
@@ -26,27 +29,26 @@ class ViTModelEngine(ModelEngine):
                               self._batch_size, 
                               self._data_transform,
                               num_workers=self._num_workers)
+    def load_saved_model(self):
+        pass
     
     def train_model(self):
         pass
 
     def get_model_outputs(self):
 
-        all_model_outputs = {}
+        model_outputs = {}
         for fold in self._folds:
-            all_model_outputs[fold] = {}
-            try:
-                _tensor_dict = torch.load(self._save_file_paths[fold])
-            except:
-                _dataloader = self._dataloaders[fold]
-                _tensor_dict = extract_features(self._model, _dataloader, self._device)
-                torch.save(_tensor_dict, self._save_file_paths[fold])
+            model_outputs[fold] = {}
             
-            all_model_outputs[fold]["feas"] = _tensor_dict["feas"]
-            all_model_outputs[fold]["logits"] = _tensor_dict["logits"]
-            all_model_outputs[fold]["labels"] = _tensor_dict["labels"]
+            _dataloader = self._dataloaders[fold]
+            _tensor_dict = extract_features(self._model, _dataloader, self._device)
+            
+            model_outputs[fold]["feas"] = _tensor_dict["feas"]
+            model_outputs[fold]["logits"] = _tensor_dict["logits"]
+            model_outputs[fold]["labels"] = _tensor_dict["labels"]
         
-        return all_model_outputs['train'], all_model_outputs['id'], all_model_outputs['ood']
+        return model_outputs['train'], model_outputs['id'], model_outputs['ood']
 
 class ViT(nn.Module):
     def __init__(self, model_name='vit'):

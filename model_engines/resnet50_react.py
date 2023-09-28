@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 from model_engines.interface import ModelEngine
 from model_engines.assets import extract_features
 
-from datasets_large import get_dataloaders
+from dataloaders.datasets_large import get_dataloaders
 
 class ResNet50ReActModelEngine(ModelEngine):
     def set_model(self, args):

@@ -4,7 +4,7 @@ import torch
 from model_engines.interface import ModelEngine
 from model_engines.assets import extract_features
 
-from datasets_large import get_dataloaders
+from dataloaders.datasets_large import get_dataloaders
 
 class ResNet50SupConModelEngine(ModelEngine):
     def set_model(self, args):
@@ -51,7 +51,7 @@ class ResNet50SupConModelEngine(ModelEngine):
         return model_outputs['train'], model_outputs['id'], model_outputs['ood']
 
 import torch.nn as nn
-from backbones.resnet_supcon import model_dict
+from backbones.resnet50_supcon import model_dict
 class ResNetSupCon(nn.Module):
     """backbone + projection head"""
     def __init__(self, name='resnet50', head='mlp', feat_dim=128, num_classes=1000, train=False):

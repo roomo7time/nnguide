@@ -115,7 +115,6 @@ def get_dataset(data_root_path, data_name, transform,
                 train=True, ood=False):
 
     if ood:
-        print(f"OOD: {data_name}")
         return ImageNetOOD(data_root_path, data_name, transform)
 
     dataset = ImageNetID(data_root_path, data_name, transform, train)

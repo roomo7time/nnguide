@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple
 
+# The model engine serves as an adapter to the ood detector
 class ModelEngine(ABC):
 
     @abstractmethod
@@ -8,14 +9,7 @@ class ModelEngine(ABC):
         """
         Set up the model architecture and configurations.
         """
-        
-        assert hasattr(args, 'train_save_dir_path')
-        assert hasattr(args, 'id_save_dir_path')
-        assert hasattr(args, 'ood_save_dir_path')
-        
         self._folds = ['train', 'id', 'ood']
-
-        assert hasattr(args, 'device')
         
         self._data_root_path = args.data_root_path
         self._data_names = {}

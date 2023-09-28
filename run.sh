@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model_name choices
-model_names=("resnet50-supcon" "resnet50-react" "regnet" "vit" "mobilenet")
+model_names=("resnet50-supcon" "resnet50-react" "regnet-y-16gf-swag-e2e-v1" "vit-b16-swag-e2e-v1" "mobilenet-v2")
 
 # id_data_name choices
 id_data_names=("imagenet1k" "imagenet1k-v2-a" "imagenet1k-v2-b" "imagenet1k-v2-c")

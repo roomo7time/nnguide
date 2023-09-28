@@ -23,9 +23,9 @@ def get_args():
                         choices=[
                             'resnet50-supcon',
                             'resnet50-react',
-                            'regnet',
-                            'vit',
-                            'mobilenet'
+                            'regnet-y-16gf-swag-e2e-v1',
+                            'vit-b16-swag-e2e-v1',
+                            'mobilenet-v2'
                         ],
                         help='The name of model')
     
@@ -40,28 +40,28 @@ def get_args():
                         default=8, 
                         help='number of workers')
     parser.add_argument('--train_data_name', '-td', type=str,  
-                        default='imagenet1k', 
+                        default='imagenet1k',
                         choices=['imagenet1k'],
                         help='The data name for the in-distribution')
     parser.add_argument('--id_data_name', '-id', type=str,  
-                        default='imagenet1k', 
-                        choices=['imagenet1k', 
+                        default='imagenet1k',
+                        choices=['imagenet1k',
                                  'imagenet1k-v2-a', 
                                  'imagenet1k-v2-b', 
                                  'imagenet1k-v2-c'],
                         help='The data name for the in-distribution')
     parser.add_argument('--ood_data_name', '-ood', type=str, 
-                        default='inaturalist', 
+                        default='sun', 
                         choices=['inaturalist', 'sun', 'places', 'textures', 'openimage-o']
                         )
     
     parser.add_argument("--ood_detectors", type=str, nargs='+', 
-                        default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
-                        # default=['energy', 'nnguide'], 
+                        # default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
+                        default=['energy', 'nnguide'], 
                         help="List of OOD detectors")
 
     parser.add_argument('--batch_size', '-bs', type=int, 
-                        default=64, 
+                        default=32, 
                         help='Batch size for inference')
 
     parser.add_argument('--data_root_path', type=str, 
@@ -81,13 +81,14 @@ def get_args():
     args.id_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.id_data_name}"
     args.ood_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.ood_data_name}"
 
-    args.model_save_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/model.pt"
-    args.detector_save_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/detector.pt"
-
+    args.model_save_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.train_data_name}/model.pt"
+    args.detector_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.train_data_name}/detectors"
+    
     mkdir(args.log_dir_path)
     mkdir(args.train_save_dir_path)
     mkdir(args.id_save_dir_path)
     mkdir(args.ood_save_dir_path)
+    mkdir(args.detector_save_dir_path)
 
     print(tabulate(list(vars(args).items()), headers=['arguments', 'values']))
 
@@ -114,7 +115,7 @@ def main():
 
 def evaluate(args, ood_detector_name: str):
     
-    print(f"Inferencing - OOD detector: {ood_detector_name}")
+    print(f"[{args.model_name} / {ood_detector_name}]: running model...")
 
     model_engine = create_model_engine(args.model_name)
     model_engine.set_model(args)
@@ -138,12 +139,18 @@ def evaluate(args, ood_detector_name: str):
     
     for fold in ['train', 'id', 'ood']:
         assert verify_model_outputs(model_outputs[fold])
-    
-    ood_detector = create_ood_detector(ood_detector_name)
-    
-    ood_detector.setup(args, model_outputs['train'])
 
-    print(f"Inferring scores - detector: {ood_detector_name}")
+    print(f"[{args.model_name} / {ood_detector_name}]: running detector...")
+    
+    saved_detector_path = f"{args.detector_save_dir_path}/{ood_detector_name}.pt"
+    try:
+        ood_detector = torch.load(saved_detector_path)["detector"]
+    except:
+        ood_detector = create_ood_detector(ood_detector_name)
+        ood_detector.setup(args, model_outputs['train'])
+        torch.save({"detector": ood_detector}, saved_detector_path)
+
+    print(f"[{args.model_name} / {ood_detector_name}]: evaluating...")
     id_scores = ood_detector.infer(model_outputs['id'])
     ood_scores = ood_detector.infer(model_outputs['ood'])
     
