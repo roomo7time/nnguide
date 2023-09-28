@@ -5,7 +5,7 @@ from prettytable import PrettyTable
 import getpass
 import yaml
 from datetime import datetime
-
+import pickle
 
 '''
 Result Save Utils
@@ -13,7 +13,6 @@ Result Save Utils
 def mkdir(path):
     if not os.path.exists(path):
         os.makedirs(path)
-
 
 def import_yaml_config(args, yaml_path):
     # args: namespace instance
@@ -24,6 +23,14 @@ def import_yaml_config(args, yaml_path):
         args.__setattr__(k, v)
 
     return args
+
+def save_dict(dict_obj, dict_path):
+    with open(dict_path, 'wb') as f:
+        pickle.dump(dict_obj, f)
+
+def load_dict(dict_path):
+    with open(dict_path, 'rb') as f:
+        return pickle.load(f)
 
 
 def dict2csv(dict, filename):

@@ -6,7 +6,7 @@ from ood_detectors.interface import OODDetector
 
 class MaxLogitOODDetector(OODDetector):
 
-    def setup(self, args, train_model_outputs: Dict):
+    def setup(self, args, train_model_outputs, train_labels):
         pass
 
     def infer(self, model_outputs: Dict):

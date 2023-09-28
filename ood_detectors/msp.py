@@ -6,7 +6,7 @@ from ood_detectors.interface import OODDetector
 
 class MSPOODDetector(OODDetector):
 
-    def setup(self, args, train_model_outputs):
+    def setup(self, args, train_model_outputs, train_labels):
         pass
 
     def infer(self, model_outputs):

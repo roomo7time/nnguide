@@ -7,11 +7,10 @@ import numpy as np
 
 from tabulate import tabulate
 
-from misc.utils_python import mkdir, import_yaml_config
+from misc.utils_python import mkdir, import_yaml_config, save_dict, load_dict
 
 from model_engines.factory import create_model_engine
 from model_engines.interface import verify_model_outputs, get_model_outputs
-from model_engines.assets import load_model_outputs, save_model_outputs
 from ood_detectors.factory import create_ood_detector
 
 from eval_assets import save_performance
@@ -53,13 +52,13 @@ def get_args():
                                  'imagenet1k-v2-c'],
                         help='The data name for the in-distribution')
     parser.add_argument('--ood_data_name', '-ood', type=str, 
-                        default='inaturalist', 
+                        default='sun', 
                         choices=['inaturalist', 'sun', 'places', 'textures', 'openimage-o']
                         )
     
     parser.add_argument("--ood_detectors", type=str, nargs='+', 
-                        # default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
-                        default=['energy', 'nnguide'], 
+                        default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
+                        # default=['energy', 'nnguide'], 
                         help="List of OOD detectors")
 
     parser.add_argument('--batch_size', '-bs', type=int, 
@@ -124,8 +123,7 @@ def evaluate(args, ood_detector_name: str):
 
     model_engine = create_model_engine(args.model_name)
     model_engine.set_model(args)
-    # FIXME: Get test id and ood loaders here
-    model_engine.set_dataloaders()  # FIXME: Get test id and ood loaders here
+    model_engine.set_dataloaders()
     
     try:
         model_engine.load_saved_model(torch.load(args.model_save_path)["model"])
@@ -168,13 +166,15 @@ def evaluate(args, ood_detector_name: str):
     '''
     print(f"[{args.model_name} / {ood_detector_name}]: running detector...")
 
-    saved_detector_path = f"{args.detector_save_dir_path}/{ood_detector_name}.pt"
+    saved_detector_path = f"{args.detector_save_dir_path}/{ood_detector_name}.pkl"
     try:
-        ood_detector = torch.load(saved_detector_path)["detector"]
+        ood_detector = load_dict(saved_detector_path)["detector"]
     except:
         ood_detector = create_ood_detector(ood_detector_name)
         ood_detector.setup(args, model_outputs['train'], labels['train'])
-        torch.save({"detector": ood_detector}, saved_detector_path)
+        print(f"[{args.model_name} / {ood_detector_name}]: saving detector...")
+        save_dict({"detector": ood_detector}, saved_detector_path)
+        print(f"[{args.model_name} / {ood_detector_name}]: detector saved!")
 
     '''
     Evaluating metrics

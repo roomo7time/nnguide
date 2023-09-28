@@ -2,8 +2,7 @@ from typing import Dict
 import torch
 import torchvision.transforms as transforms
 
-from model_engines.interface import ModelEngine, get_model_outputs
-from model_engines.assets import extract_features
+from model_engines.interface import ModelEngine
 
 from dataloaders.factory import get_train_dataloader
 
@@ -38,11 +37,6 @@ class ResNet50ReActModelEngine(ModelEngine):
     
     def get_train_dataloader(self):
         return self._train_dataloader
-
-    def get_train_model_outputs(self):
-        train_model_outputs, train_labels = get_model_outputs(self._train_dataloader, self.infer)
-        train_model_outputs['labels'] = train_labels
-        return train_model_outputs
         
     def infer(self, x):
         x = x.to(self._device)

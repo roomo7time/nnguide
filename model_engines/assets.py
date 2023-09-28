@@ -31,9 +31,3 @@ def extract_features(model, dataloader, device):
 
     return {"feas": feas, "logits": logits, "labels": labels}
 
-def load_model_outputs(saved_model_outputs_path):
-    model_outputs = torch.load(saved_model_outputs_path)
-    return model_outputs
-
-def save_model_outputs(saved_model_outputs_path, model_outputs):
-    torch.save(model_outputs, saved_model_outputs_path)

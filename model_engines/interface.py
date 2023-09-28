@@ -40,7 +40,7 @@ class ModelEngine(ABC):
         pass
 
     @abstractmethod
-    def get_train_model_outputs(self) -> Dict[str, torch.Tensor]:
+    def get_train_dataloader(self) -> DataLoader:
         pass
 
     @abstractmethod
