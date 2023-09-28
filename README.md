@@ -41,6 +41,14 @@ Download OpenImage-O from the official website.
 ### Pretrained models
 Download `resnet50-supcon.pt` from the [link](https://www.dropbox.com/scl/fi/f3bfipk2o96f27vibpozb/resnet50-supcon.pt?rlkey=auxw68wcgqcx4ze6yhnmm395y&dl=0) and put it in the directory `pretrained_models`.
 
+## Run Experiments
+
+To run experiments, execute
+```
+chmod +x run.sh
+./run.sh
+```
+
 
 ## Acknowledgements
 Parts of our codebase have been adopted from the official repositories for [KNN-OOD](https://github.com/deeplearning-wisc/knn-ood) and [VIM](https://github.com/haoqiwang/vim), and we benefited from the pretrained weights made available through these sources.

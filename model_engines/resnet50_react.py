@@ -40,12 +40,7 @@ class ResNet50ReActModelEngine(ModelEngine):
         model_outputs = {}
         for fold in self._folds:
             model_outputs[fold] = {}
-            # try:
-            #     _tensor_dict = torch.load(self._save_file_paths[fold])
-            # except:
-            #     _dataloader = self._dataloaders[fold]
-            #     _tensor_dict = extract_features(self._model, _dataloader, self._device)
-            #     torch.save(_tensor_dict, self._save_file_paths[fold])
+            
             _dataloader = self._dataloaders[fold]
             _tensor_dict = extract_features(self._model, _dataloader, self._device)
             
