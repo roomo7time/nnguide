@@ -31,15 +31,17 @@ def extract_features(model, dataloader, device):
 
     return {"feas": feas, "logits": logits, "labels": labels}
 
-# def load_features(save_dir_path, name=None):
-#     print(f"Loading features - fold: {name}")
-#     assert re.fullmatch(r'^(train|id|ood-\d+)$', name)
-#     tensor_dict = torch.load(f"{save_dir_path}/{name}.pt")
-#     print(f"Successfully loaded features - fold: {name}")
-#     return tensor_dict['feas'], tensor_dict['logits'], tensor_dict['labels']
+def load_model_outputs(args):
+    model_outputs = {}
 
-# def save_tensors(tensor_dict, save_dir_path, name=None):
-#     assert re.fullmatch(r'^(train|id|ood-\d+)$', name)
-#     print(f"Saving features - fold: {name}")
-#     torch.save(tensor_dict, f"{save_dir_path}/{name}.pt")
-#     print(f"Successfully saved features - fold: {name}")
+    model_outputs['train'] = torch.load(f"{args.train_save_dir_path}/model_outputs_train.pt")
+    model_outputs['id'] = torch.load(f"{args.id_save_dir_path}/model_outputs_id.pt")
+    model_outputs['ood'] = torch.load(f"{args.ood_save_dir_path}/model_outputs_ood.pt")
+
+    return model_outputs
+
+def save_model_outputs(args, model_outputs):
+    
+    torch.save(model_outputs['train'], f"{args.train_save_dir_path}/model_outputs_train.pt")
+    torch.save(model_outputs['id'], f"{args.id_save_dir_path}/model_outputs_id.pt")
+    torch.save(model_outputs['ood'], f"{args.ood_save_dir_path}/model_outputs_ood.pt")

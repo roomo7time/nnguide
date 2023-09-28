@@ -14,10 +14,6 @@ class ModelEngine(ABC):
         assert hasattr(args, 'ood_save_dir_path')
         
         self._folds = ['train', 'id', 'ood']
-        self._save_file_paths = {}
-        self._save_file_paths['train'] = f"{args.train_save_dir_path}/model_outputs_train.pt"
-        self._save_file_paths['id'] = f"{args.id_save_dir_path}/model_outputs_id.pt"
-        self._save_file_paths['ood'] = f"{args.ood_save_dir_path}/model_outputs_ood.pt"
 
         assert hasattr(args, 'device')
         
@@ -31,11 +27,18 @@ class ModelEngine(ABC):
         self._num_workers = args.num_workers
         self._device = args.device
         pass
+    
+    def get_data_transform(self):
+        pass
 
     @abstractmethod
     def set_dataloaders(self):
         pass
     
+    @abstractmethod
+    def load_saved_model(self, saved_model):
+        pass
+
     @abstractmethod
     def train_model(self):
         pass

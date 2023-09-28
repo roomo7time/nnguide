@@ -6,11 +6,11 @@ from ood_detectors.assets import knn_score
 
 class KNNOODDetector(OODDetector):
 
-    def setup(self, train_model_outputs: Dict, hyperparam: Dict = None):
+    def setup(self, args, train_model_outputs: Dict):
         feas_train = train_model_outputs['feas']
         
         try:
-            self.knn_k = hyperparam['knn_k']
+            self.knn_k = args.detector['knn_k']
         except:
             self.knn_k = 10
 

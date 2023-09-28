@@ -11,21 +11,27 @@ from misc.utils_python import mkdir, import_yaml_config
 
 from model_engines.factory import create_model_engine
 from model_engines.interface import verify_model_outputs
+from model_engines.assets import load_model_outputs, save_model_outputs
 from ood_detectors.factory import create_ood_detector
 
 from eval_assets import save_performance
 
-def verify_args(args):
-    if not hasattr(args, 'seed'):
-        args.seed = 0
-    assert hasattr(args, 'model')
-    return args
-
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config_name', '-cn', type=str, 
-                        default='config01',
-                        help='The name of configuration')
+    parser.add_argument('--model_name', '-m', type=str, 
+                        default='resnet50-supcon',
+                        choices=[
+                            'resnet50-supcon',
+                            'resnet50-react',
+                            'regnet',
+                            'vit',
+                            'mobilenet'
+                        ],
+                        help='The name of model')
+    
+    parser.add_argument('--seed', type=int, 
+                        default=0, 
+                        help='Seed number')
 
     parser.add_argument('--gpu_idx', '-g', type=int, 
                         default=0, 
@@ -50,31 +56,33 @@ def get_args():
                         )
     
     parser.add_argument("--ood_detectors", type=str, nargs='+', 
-                        # default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
-                        default=['energy', 'nnguide'], 
+                        default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
+                        # default=['energy', 'nnguide'], 
                         help="List of OOD detectors")
 
     parser.add_argument('--batch_size', '-bs', type=int, 
                         default=64, 
-                        help='batch size for inference')
+                        help='Batch size for inference')
 
     parser.add_argument('--data_root_path', type=str, 
                         default='/home/jay/savespace/database/generic_large', 
-                        help='data root path')
+                        help='Data root path')
     parser.add_argument('--save_root_path', type=str,
                         default='./saved_model_outputs')
 
     args = parser.parse_args()
     args.device = torch.device('cuda:%d' % (args.gpu_idx) if torch.cuda.is_available() else 'cpu')
 
-    args = import_yaml_config(args, head='./configs')
+    args = import_yaml_config(args, f'./configs/model/{args.model_name}.yaml')
+    
+    args.log_dir_path = f"./logs/seed-{args.seed}/{args.model_name}/{args.train_data_name}/{args.id_data_name}"
+    
+    args.train_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.train_data_name}"
+    args.id_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.id_data_name}"
+    args.ood_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.ood_data_name}"
 
-    args.log_dir_path = f"./logs/{args.config_name}/{args.train_data_name}/{args.id_data_name}"
-    args.train_save_dir_path = f"{args.save_root_path}/{args.config_name}/{args.train_data_name}"
-    args.id_save_dir_path = f"{args.save_root_path}/{args.config_name}/{args.id_data_name}"
-    args.ood_save_dir_path = f"{args.save_root_path}/{args.config_name}/{args.ood_data_name}"
-
-    args = verify_args(args)
+    args.model_save_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/model.pt"
+    args.detector_save_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/detector.pt"
 
     mkdir(args.log_dir_path)
     mkdir(args.train_save_dir_path)
@@ -85,59 +93,66 @@ def get_args():
 
     return args
 
-def main():
-
-    args = get_args()
-
-    seed = args.seed
+def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
 
+def main():
+
+    args = get_args()
+    set_seed(args.seed)
+
     scores_set = {}
     accs = {}
     for oodd_name in args.ood_detectors:
-        scores_set[oodd_name], labels, accs[oodd_name] = infer(args, oodd_name)
+        args = import_yaml_config(args, f"./configs/detector/{oodd_name}.yaml")
+        scores_set[oodd_name], labels, accs[oodd_name] = evaluate(args, oodd_name)
 
     save_performance(scores_set, labels, accs, f"{args.log_dir_path}/ood-{args.ood_data_name}.csv")
 
-def infer(args, ood_detector_name: str):
+def evaluate(args, ood_detector_name: str):
     
     print(f"Inferencing - OOD detector: {ood_detector_name}")
 
-    model_engine = create_model_engine(args)
+    model_engine = create_model_engine(args.model_name)
     model_engine.set_model(args)
-    model_engine.set_dataloaders()
-    model_engine.train_model()
+    # FIXME: Get test id and ood loaders here
+    model_engine.set_dataloaders()  # FIXME: Get test id and ood loaders here
+    
+    try:
+        model_engine.load_saved_model(torch.load(args.model_save_path)["model"])
+    except:
+        model = model_engine.train_model()
+        if model:
+            torch.save({"model": model}, args.model_save_path)
 
-    all_model_outputs = {}
-    all_model_outputs['train'], all_model_outputs['id'], all_model_outputs['ood'] \
-        = model_engine.get_model_outputs()
-
-    for _, _model_outputs in all_model_outputs.items():
-        assert verify_model_outputs(_model_outputs)
+    try:
+        model_outputs = load_model_outputs(args)
+    except:
+        model_outputs = {}
+        model_outputs['train'], model_outputs['id'], model_outputs['ood'] \
+            = model_engine.get_model_outputs()
+        save_model_outputs(args, model_outputs)
+    
+    for fold in ['train', 'id', 'ood']:
+        assert verify_model_outputs(model_outputs[fold])
     
     ood_detector = create_ood_detector(ood_detector_name)
-
-    if hasattr(args, ood_detector_name):
-        hyperparam = getattr(args, ood_detector_name)
-    else:
-        hyperparam = None
     
-    ood_detector.setup(all_model_outputs['train'], hyperparam)
+    ood_detector.setup(args, model_outputs['train'])
 
-    _scores = {}
-    for fold in ['id', 'ood']:
-        print(f"Inferring scores - detector: {ood_detector_name} fold: {fold}")
-        _scores[fold] = ood_detector.infer(all_model_outputs[fold])
+    print(f"Inferring scores - detector: {ood_detector_name}")
+    id_scores = ood_detector.infer(model_outputs['id'])
+    ood_scores = ood_detector.infer(model_outputs['ood'])
     
-    scores = torch.cat([_scores['id'], _scores['ood']], dim=0).numpy()
+    scores = torch.cat([id_scores, ood_scores], dim=0).numpy()
 
     labels = {}
-    labels['id'] = all_model_outputs['id']['labels']
-    labels['ood'] = all_model_outputs['ood']['labels']
-    id_logits = all_model_outputs['id']['logits']
+    labels['id'] = model_outputs['id']['labels']
+    labels['ood'] = model_outputs['ood']['labels']
+    id_logits = model_outputs['id']['logits']
     detection_labels = torch.cat([torch.ones_like(labels['id']), torch.zeros_like(labels['ood'])], dim=0).numpy()
     
     pred_id = torch.max(id_logits, dim=-1)[1]

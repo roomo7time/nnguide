@@ -6,15 +6,16 @@ from model_engines.assets import extract_features
 
 from datasets_large import get_dataloaders
 
-class ResNetModelEngine(ModelEngine):
+class ResNet50ReActModelEngine(ModelEngine):
     def set_model(self, args):
         super().set_model(args)
         self._model = ResNet()           
         self._data_transform = DATA_TRANSFORM
 
-        if hasattr(args, 'react_percentile'):
-            self._react_percentile = args.react_percentile
-            self._train_save_dir_path = args.train_save_dir_path
+        self._react_percentile = args.model["react_percentile"]          
+    
+    def get_data_transform(self):
+        return self._data_transform
     
     def set_dataloaders(self):
         

@@ -6,10 +6,12 @@ from ood_detectors.assets import knn_score
 
 class NNGuideOODDetector(OODDetector):
 
-    def setup(self, train_model_outputs, hyperparam: Dict = None):
+    def setup(self, args, train_model_outputs):
 
         logits_train = train_model_outputs['logits']
         feas_train = train_model_outputs['feas']
+
+        hyperparam = args.detector
 
         try:
             self.knn_k = hyperparam['knn_k']

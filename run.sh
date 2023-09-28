@@ -1,10 +1,20 @@
 #!/bin/bash
 
-# Loop through each cn value from config01 to config05
-for cn in config01 config02 config03 config04 config05; do
-  # Loop through each si value from 0 to 4
-  for si in {0..4}; do
-    # Run the Python script with the current cn and si values
-    python main.py -cn "$cn" -si "$si"
-  done
+# model_name choices
+model_names=("resnet50-supcon" "resnet50-react" "regnet" "vit" "mobilenet")
+
+# id_data_name choices
+id_data_names=("imagenet1k" "imagenet1k-v2-a" "imagenet1k-v2-b" "imagenet1k-v2-c")
+
+# ood_data_name choices
+ood_data_names=("inaturalist" "sun" "places" "textures" "openimage-o")
+
+# Iterate through all combinations
+for model in "${model_names[@]}"; do
+    for id_data in "${id_data_names[@]}"; do
+        for ood_data in "${ood_data_names[@]}"; do
+            # Running the main.py with the current combination
+            python main.py --model_name "$model" --id_data_name "$id_data" --ood_data_name "$ood_data"
+        done
+    done
 done

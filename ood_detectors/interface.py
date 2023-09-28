@@ -6,9 +6,7 @@ from typing import Dict
 class OODDetector(ABC):
 
     @abstractmethod
-    def setup(self, 
-              train_model_outputs: Dict,
-              hyperparam: Dict = None):
+    def setup(self, args, train_model_outputs: Dict):
         pass
 
     @abstractmethod

@@ -7,7 +7,7 @@ from ood_detectors.assets import Mahalanobis
 
 class MahalanobisOODDetector(OODDetector):
 
-    def setup(self, train_model_outputs: Dict, hyperparam: Dict = None):
+    def setup(self, args, train_model_outputs: Dict):
         feas_train = train_model_outputs['feas']
         labels_train = train_model_outputs['labels']
         self.mahalanobis = Mahalanobis()

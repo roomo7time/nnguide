@@ -15,9 +15,9 @@ def mkdir(path):
         os.makedirs(path)
 
 
-def import_yaml_config(args, head='./configs/imagenet'):
+def import_yaml_config(args, yaml_path):
     # args: namespace instance
-    with open(f"{head}/{args.config_name}.yaml", 'r') as stream:
+    with open(yaml_path, 'r') as stream:
         conf_yaml = yaml.safe_load(stream)
 
     for k, v in conf_yaml.items():
