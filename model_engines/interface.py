@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple
+from torch import nn
+from torchvision import transforms
 
 # The model engine serves as an adapter to the ood detector
 class ModelEngine(ABC):
@@ -22,7 +24,7 @@ class ModelEngine(ABC):
         self._device = args.device
         pass
     
-    def get_data_transform(self):
+    def get_data_transform(self) -> transforms.Compose:
         pass
 
     @abstractmethod
@@ -30,11 +32,11 @@ class ModelEngine(ABC):
         pass
     
     @abstractmethod
-    def load_saved_model(self, saved_model):
+    def load_saved_model(self, saved_model: nn.Module):
         pass
 
     @abstractmethod
-    def train_model(self):
+    def train_model(self) -> nn.Module:
         pass
     
     @abstractmethod

@@ -150,7 +150,7 @@ def evaluate(args, ood_detector_name: str):
         ood_detector.setup(args, model_outputs['train'])
         torch.save({"detector": ood_detector}, saved_detector_path)
 
-    print(f"[{args.model_name} / {ood_detector_name}]: evaluating...")
+    print(f"[{args.model_name} / {ood_detector_name}]: evaluating metrics...")
     id_scores = ood_detector.infer(model_outputs['id'])
     ood_scores = ood_detector.infer(model_outputs['ood'])
     
