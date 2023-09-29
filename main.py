@@ -20,7 +20,7 @@ from dataloaders.factory import get_id_dataloader, get_ood_dataloader
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', '-m', type=str, 
-                        default='resnet50-react',
+                        default='resnet50-supcon',
                         choices=[
                             'resnet50-supcon',
                             'resnet50-react',
@@ -52,13 +52,13 @@ def get_args():
                                  'imagenet1k-v2-c'],
                         help='The data name for the in-distribution')
     parser.add_argument('--ood_data_name', '-ood', type=str, 
-                        default='sun', 
+                        default='inaturalist', 
                         choices=['inaturalist', 'sun', 'places', 'textures', 'openimage-o']
                         )
     
     parser.add_argument("--ood_detectors", type=str, nargs='+', 
-                        default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
-                        # default=['energy', 'nnguide'], 
+                        # default=['energy', 'nnguide', 'msp', 'maxlogit', 'vim', 'ssd', 'mahalanobis', 'knn'], 
+                        default=['energy', 'nnguide'], 
                         help="List of OOD detectors")
 
     parser.add_argument('--batch_size', '-bs', type=int, 

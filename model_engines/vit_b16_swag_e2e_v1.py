@@ -1,11 +1,10 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchvision.models import vit_b_16, ViT_B_16_Weights
 
 from model_engines.interface import ModelEngine
-from model_engines.assets import extract_features
-
-from dataloaders.factory import get_dataloaders
+from dataloaders.factory import get_train_dataloader
 
 class ViTModelEngine(ModelEngine):
     def set_model(self, args):
@@ -13,42 +12,34 @@ class ViTModelEngine(ModelEngine):
         self._model = ViT()           
         self._data_transform = ViT_B_16_Weights.IMAGENET1K_SWAG_E2E_V1.transforms()
 
-        if hasattr(args, 'react_percentile'):
-            self._react_percentile = args.react_percentile
-            self._train_save_dir_path = args.train_save_dir_path
+        self._model.to(self._device)
+        self._model.eval()
     
     def get_data_transform(self):
         return self._data_transform
     
     def set_dataloaders(self):
-        
-        self._dataloaders = {}
-        self._dataloaders['train'], self._dataloaders['id'], self._dataloaders['ood'] \
-            = get_dataloaders(self._data_root_path, 
-                              self._data_names['train'], self._data_names['id'], self._data_names['ood'],
-                              self._batch_size, 
-                              self._data_transform,
-                              num_workers=self._num_workers)
-    def load_saved_model(self):
-        pass
+        self._train_dataloader = get_train_dataloader(self._data_root_path, 
+                                                      self._train_data_name,
+                                                      self._batch_size, 
+                                                      self._data_transform,
+                                                      num_workers=self._num_workers)
     
+    def load_saved_model(self, saved_model):
+        pass
+
     def train_model(self):
         pass
 
-    def get_model_outputs(self):
+    def get_train_dataloader(self):
+        return self._train_dataloader
 
-        model_outputs = {}
-        for fold in self._folds:
-            model_outputs[fold] = {}
-            
-            _dataloader = self._dataloaders[fold]
-            _tensor_dict = extract_features(self._model, _dataloader, self._device)
-            
-            model_outputs[fold]["feas"] = _tensor_dict["feas"]
-            model_outputs[fold]["logits"] = _tensor_dict["logits"]
-            model_outputs[fold]["labels"] = _tensor_dict["labels"]
-        
-        return model_outputs['train'], model_outputs['id'], model_outputs['ood']
+    def infer(self, x):
+        x = x.to(self._device)
+        with torch.no_grad():
+            raw_feas, logits = self._model(x)
+            feas = F.normalize(raw_feas, dim=1)
+        return {"feas": feas, "logits": logits}
 
 class ViT(nn.Module):
     def __init__(self, model_name='vit'):

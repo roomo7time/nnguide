@@ -13,6 +13,7 @@ class ResNet50SupConModelEngine(ModelEngine):
         msg = self._model.load_state_dict(state_dict, strict=False)            
         self._data_transform = DATA_TRANSFORM
 
+        self._model.to(self._device)
         self._model.eval()
     
     def get_data_transform(self):
