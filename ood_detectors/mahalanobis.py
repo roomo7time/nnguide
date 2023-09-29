@@ -7,10 +7,14 @@ from ood_detectors.assets import Mahalanobis
 
 class MahalanobisOODDetector(OODDetector):
 
-    def setup(self, feas_train, logits_train, labels_train, hyperparam: Dict = None):
+    def setup(self, args, train_model_outputs, train_labels):
+        train_feas = train_model_outputs['feas']
+        
         self.mahalanobis = Mahalanobis()
-        self.mahalanobis.fit(feas_train, labels_train)
+        self.mahalanobis.fit(train_feas, train_labels)
 
-    def infer(self, feas, logits):
+    def infer(self, model_outputs: Dict):
+
+        feas = model_outputs['feas']
         device = feas.device
         return torch.from_numpy(self.mahalanobis.score(feas)).to(device)

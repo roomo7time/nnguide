@@ -6,13 +6,9 @@ from typing import Dict
 class OODDetector(ABC):
 
     @abstractmethod
-    def setup(self, 
-              feas_train: torch.Tensor, 
-              logits_train: torch.Tensor, 
-              labels_train: torch.Tensor = None, 
-              hyperparam: Dict = None):
+    def setup(self, args, train_model_outputs: Dict[str, torch.Tensor], train_labels: torch.Tensor):
         pass
 
     @abstractmethod
-    def infer(self, feas, logits):
+    def infer(self, model_outputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         pass

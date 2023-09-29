@@ -2,6 +2,6 @@
 .vscode/
 __pycache__
 
-logs/
-saved_model_outputs/
+logs/*
+saved_model_outputs/*
 pretrained_models/*

@@ -1,11 +1,11 @@
 
 ### Datasets
 
-Assuming `data_root_path` is `~/data` The datasets should be prepared as follows:
+Assuming `data_root_path` is `~/datasets`, the datasets should be prepared as follows:
 
 **ImageNet-1k** (ID)
 ```
-~/data/imagenet1k
+~/datasets/imagenet1k
 └── imagenet
     ├── train
     │   ├── n01440764
@@ -32,7 +32,7 @@ n01440764
 
 **iNaturalist** (OOD)
 ```
-~/data/inaturalist
+~/datasets/inaturalist
 └── iNaturalist
     └── images
         ├── 000309dd0c724a5104df8e716b9008a0.jpg
@@ -44,7 +44,7 @@ n01440764
 
 **SUN** (OOD)
 ```
-~/data/sun
+~/datasets/sun
 └── SUN
     └── images
         ├── sun_aaaevyiuguntlerb.jpg
@@ -57,7 +57,7 @@ n01440764
 
 **Places** (OOD)
 ```
-~/data/places
+~/datasets/places
 └── Places
     └── images
         ├── b_badlands_00000038.jpg
@@ -69,7 +69,7 @@ n01440764
 
 **Textures** (OOD)
 ```
-~/data/textures
+~/datasets/textures
 └── dtd
     ├── images
     │   ├── banded
@@ -83,7 +83,7 @@ n01440764
 
 **OpenImage-O** (OOD)
 ```
-~/data/openimage-o
+~/datasets/openimage-o
 └── images
     ├── 000d5efd9500e718.jpg
     ├── 0010a3d096cd57b2.jpg

@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import re
 
 def extract_features(model, dataloader, device):
+    model.to(device)
+    model.eval()
 
     feas = [[]] * len(dataloader)
     logits = [[]] * len(dataloader)
@@ -27,17 +29,5 @@ def extract_features(model, dataloader, device):
 
     print(f"Successfully extracted features")
 
-    return feas, logits, labels
+    return {"feas": feas, "logits": logits, "labels": labels}
 
-def load_features(save_dir_path, name=None):
-    print(f"Loading features - fold: {name}")
-    assert re.fullmatch(r'^(train|id|ood-\d+)$', name)
-    tensor_dict = torch.load(f"{save_dir_path}/{name}.pt")
-    print(f"Successfully loaded features - fold: {name}")
-    return tensor_dict['feas'], tensor_dict['logits'], tensor_dict['labels']
-
-def save_features(tensor_dict, save_dir_path, name=None):
-    assert re.fullmatch(r'^(train|id|ood-\d+)$', name)
-    print(f"Saving features - fold: {name}")
-    torch.save(tensor_dict, f"{save_dir_path}/{name}.pt")
-    print(f"Successfully saved features - fold: {name}")

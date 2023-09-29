@@ -58,22 +58,22 @@ class Mahalanobis(object):
                 y = np.zeros(len(X))
 
         self.center = np.zeros(shape=(self.num_clusters, dim))
-        self.cov = np.zeros(shape=(self.num_clusters, dim, dim))
+        cov = np.zeros(shape=(self.num_clusters, dim, dim))
 
         for k in tqdm(range(self.num_clusters)):
             X_k = np.array(X[y == k])
 
             self.center[k] = np.mean(X_k, axis=0)
-            self.cov[k] = np.cov(X_k.T, bias=True)
+            cov[k] = np.cov(X_k.T, bias=True)
 
         if supervised:
-            shared_cov = self.cov.mean(axis=0)
+            shared_cov = cov.mean(axis=0)
             self.shared_icov = np.linalg.pinv(shared_cov)
         else:
             self.icov = np.zeros(shape=(self.num_clusters, dim, dim))
             self.shared_icov = None
             for k in tqdm(range(self.num_clusters)):
-                self.icov[k] = np.linalg.pinv(self.cov[k])
+                self.icov[k] = np.linalg.pinv(cov[k])
 
     def score(self, X, return_distance=False):
         X = np.array(X)

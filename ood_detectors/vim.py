@@ -12,7 +12,9 @@ class VIMOODDetector(OODDetector):
     # Unlike the original VIM, we use the mean of train features instead of bias. 
     # This is because sometimes the classifier may not have a bias, 
     # and PCA makes more sense with the mean than the bias.
-    def setup(self, feas_train, logits_train, labels_train=None, hyperparam: Dict = None):
+    def setup(self, args, train_model_outputs, train_labels):
+        feas_train = train_model_outputs['feas']
+        logits_train = train_model_outputs['logits']
         
         device = feas_train.device
 
@@ -33,18 +35,11 @@ class VIMOODDetector(OODDetector):
         self.u = u
         self.R = R
         self.alpha = alpha
-        
-        # virtual_logits_train *= alpha
 
-        # energies_train = torch.logsumexp(logits_train, dim=1)
-        # bankconfs['vim'] = energies_train - virtual_logits_train
-        # lower_bound = bankconfs['vim'].min().item()
-        # bankconfs['vim'] -= lower_bound
+    def infer(self, model_outputs: Dict):
 
-        # u = u.to(args.device)
-        # R = R.to(args.device)
-
-    def infer(self, feas, logits):
+        feas = model_outputs['feas']
+        logits = model_outputs['logits']
 
         device = feas.device
 

@@ -112,51 +112,33 @@ class ImageNetOOD(Dataset):
         return out, reject_target, target
 
 def get_dataset(data_root_path, data_name, transform, 
-                train=True, ood=False, split_idx=None):
-    ood_names = {
-        0: 'inaturalist',
-        1: 'sun',
-        2: 'places',
-        3: 'textures',
-        4: 'openimage-o'
-    }
+                train=True, ood=False):
 
     if ood:
-        assert split_idx is not None
-        assert split_idx in ood_names.keys()
-        print(f"OOD data: {ood_names[split_idx]}")
-        return ImageNetOOD(data_root_path, ood_names[split_idx], transform)
+        return ImageNetOOD(data_root_path, data_name, transform)
 
-    dataset = ImageNetID(data_root_path, data_name[4:], transform, train)
+    dataset = ImageNetID(data_root_path, data_name, transform, train)
 
     return dataset
 
-
-def get_test_dataloaders(data_root_path, data_name, split_idx, batch_size, transform,
-                         num_workers=0, bankset_ratio=0.01):
-
-    if data_name in ['ood-imagenet1k',
-                     'ood-imagenet1k-v2-a', 
-                     'ood-imagenet1k-v2-b', 
-                     'ood-imagenet1k-v2-c']:
-        bank_name = 'ood-imagenet1k'
-
-
-    bankset_ind = get_dataset(data_root_path, bank_name, transform, 
-                              train=True, ood=False, split_idx=None)
-    queryset_ind = get_dataset(data_root_path, data_name, transform, 
-                               train=False, ood=False, split_idx=split_idx)
-    queryset_ood = get_dataset(data_root_path, data_name, transform, 
-                               train=False, ood=True, split_idx=split_idx)
+def get_train_dataloader(data_root_path, data_name, batch_size, transform, num_workers=0, bankset_ratio=0.01, shuffle=False):
+    dataset = get_dataset(data_root_path, data_name, transform, train=True, ood=False)
 
     if bankset_ratio < 1.:
-        subsample(bankset_ind, alpha=bankset_ratio)
+        subsample(dataset, alpha=bankset_ratio)
 
-    bankloader_ind = DataLoader(bankset_ind, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-    queryloader_ind = DataLoader(queryset_ind, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-    queryloader_ood = DataLoader(queryset_ood, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=True)
+    return dataloader
 
-    return bankloader_ind, queryloader_ind, queryloader_ood
+def get_id_dataloader(data_root_path, data_name, batch_size, transform, num_workers=0):
+    dataset = get_dataset(data_root_path, data_name, transform, train=False, ood=False)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+    return dataloader
+
+def get_ood_dataloader(data_root_path, data_name, batch_size, transform, num_workers=0):
+    dataset = get_dataset(data_root_path, data_name, transform, train=False, ood=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+    return dataloader
 
 def subsample(dataset, alpha=0.01, shuffle=True):
     N = len(dataset)
