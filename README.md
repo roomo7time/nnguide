@@ -13,7 +13,7 @@ The conda environment is installed by
 ```
 conda create -n nnguide python=3.8.13
 ```
-and then then on the `nnguide` conda environment, the required packages are installed by
+and then on the `nnguide` conda environment, the required packages are installed by
 ```
 chmod +x install_packages.sh
 ./install_packages.sh
@@ -22,7 +22,7 @@ chmod +x install_packages.sh
 
 ### Dataset
 
-To set up dataset folder structures, refer to `README.md` in the `config` folder.
+To set up dataset folder structures, refer to `README.md` in the `./dataloaders` folder.
 
 #### 1. Download ImageNet-1k:
 Download `ILSVRC2012_img_train.tar` and `ILSVRC2012_img_val.tar` from the official ImageNet [website](). And use `./dataloaders/assets/extract_ILSVRC.sh` to unzip the zip files.
@@ -52,4 +52,18 @@ chmod +x run.sh
 
 
 ## Acknowledgements
-Parts of our codebase have been adopted from the official repositories for [KNN-OOD](https://github.com/deeplearning-wisc/knn-ood) and [VIM](https://github.com/haoqiwang/vim), and we benefited from the pretrained weights made available through these sources.
+Parts of our codebase have been adopted from the official repositories for [KNN-OOD](https://github.com/deeplearning-wisc/knn-ood) and [VIM](https://github.com/haoqiwang/vim), and we benefited from the pretrained weights made available through these sources. Our code style is largely inspired by [OpenOOD](https://github.com/Jingkang50/OpenOOD).
+
+
+<!-- ## Citation
+If you find our repository useful for your research, please consider citing our paper:
+```bibtex
+@misc{park2023nearest,
+      title={Nearest Neighbor Guidance for Out-of-Distribution Detection}, 
+      author={Jaewoo Park and Yoon Gyo Jung and Andrew Beng Jin Teoh},
+      year={2023},
+      eprint={2309.14888},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+``` -->
