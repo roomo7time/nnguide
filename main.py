@@ -20,7 +20,7 @@ from dataloaders.factory import get_id_dataloader, get_ood_dataloader
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', '-m', type=str, 
-                        default='resnet50-supcon',
+                        default='resnet50-react',
                         choices=[
                             'resnet50-supcon',
                             'resnet50-react',
@@ -66,7 +66,7 @@ def get_args():
                         help='Batch size for inference')
 
     parser.add_argument('--data_root_path', type=str, 
-                        default='/home/jay/savespace/database/generic_large', 
+                        default='/home/jay/datasets', 
                         help='Data root path')
     parser.add_argument('--save_root_path', type=str,
                         default='./saved_model_outputs')

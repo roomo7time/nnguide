@@ -25,7 +25,7 @@ chmod +x install_packages.sh
 To set up dataset folder structures, refer to `README.md` in the `config` folder.
 
 #### 1. Download ImageNet-1k:
-Download `ILSVRC2012_img_train.tar` and `ILSVRC2012_img_val.tar` from the official ImageNet [website]()
+Download `ILSVRC2012_img_train.tar` and `ILSVRC2012_img_val.tar` from the official ImageNet [website](). And use `./dataloaders/assets/extract_ILSVRC.sh` to unzip the zip files.
 
 #### 2. Download iNaturalist, SUN, Places, Textures, OpenImage-O OOD datasets:
 To download iNaturalist, SUN, and Places
@@ -36,7 +36,6 @@ wget http://pages.cs.wisc.edu/~huangrui/imagenet_ood_dataset/Places.tar.gz
 ```
 Download Textures from the official [website](https://www.robots.ox.ac.uk/~vgg/data/dtd/).
 Download OpenImage-O from the official website.
-
 
 ### Pretrained models
 Download `resnet50-supcon.pt` from the [link](https://www.dropbox.com/scl/fi/f3bfipk2o96f27vibpozb/resnet50-supcon.pt?rlkey=auxw68wcgqcx4ze6yhnmm395y&dl=0) and put it in the directory `pretrained_models` as `./pretrained_models/resnet50-supcon.py`.
