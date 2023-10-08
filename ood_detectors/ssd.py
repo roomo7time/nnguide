@@ -7,7 +7,7 @@ from ood_detectors.assets import Mahalanobis
 
 class SSDOODDetector(OODDetector):
 
-    def setup(self, args, train_model_outputs, train_labels):
+    def setup(self, args, train_model_outputs):
         feas_train = train_model_outputs['feas']
         
         self.ssd = Mahalanobis(num_clusters=1)
