@@ -40,7 +40,7 @@ Download OpenImage-O from the official website.
 ### Pretrained models
 Download `resnet50-supcon.pt` from the [link](https://www.dropbox.com/scl/fi/f3bfipk2o96f27vibpozb/resnet50-supcon.pt?rlkey=auxw68wcgqcx4ze6yhnmm395y&dl=0) and put it in the directory `pretrained_models` as `./pretrained_models/resnet50-supcon.py`.
 
-To fully reproduce the reported results, download `saved_model_outputs` from the [link](https://www.dropbox.com/scl/fi/74g87knhfjgaop0lu8oh1/saved_model_outputs.zip?rlkey=olo7b3dqvbzuzbkraa2uapt30&dl=0) and save it with the path `./saved_model_outputs`.
+<!-- To fully reproduce the reported results, download `saved_model_outputs` from the [link](https://www.dropbox.com/scl/fi/74g87knhfjgaop0lu8oh1/saved_model_outputs.zip?rlkey=olo7b3dqvbzuzbkraa2uapt30&dl=0) and save it with the path `./saved_model_outputs`. -->
 
 ## Run Experiments
 
@@ -55,15 +55,14 @@ chmod +x run.sh
 Parts of our codebase have been adopted from the official repositories for [KNN-OOD](https://github.com/deeplearning-wisc/knn-ood) and [VIM](https://github.com/haoqiwang/vim), and we benefited from the pretrained weights made available through these sources. Our code style is largely inspired by [OpenOOD](https://github.com/Jingkang50/OpenOOD).
 
 
-<!-- ## Citation
+## Citation
 If you find our repository useful for your research, please consider citing our paper:
 ```bibtex
-@misc{park2023nearest,
-      title={Nearest Neighbor Guidance for Out-of-Distribution Detection}, 
-      author={Jaewoo Park and Yoon Gyo Jung and Andrew Beng Jin Teoh},
-      year={2023},
-      eprint={2309.14888},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+@inproceedings{park2023nearest,
+  title={Nearest Neighbor Guidance for Out-of-Distribution Detection},
+  author={Park, Jaewoo and Jung, Yoon Gyo and Teoh, Andrew Beng Jin},
+  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+  pages={1686--1695},
+  year={2023}
 }
-``` -->
+```
