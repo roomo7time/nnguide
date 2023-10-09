@@ -18,7 +18,7 @@ from eval_assets import save_performance
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', '-m', type=str, 
-                        default='resnet50-supcon',
+                        default='resnet50-react',
                         choices=[
                             'resnet50-supcon',
                             'resnet50-react',
