@@ -12,7 +12,7 @@ class VIMOODDetector(OODDetector):
     # Unlike the original VIM, we use the mean of train features instead of bias. 
     # This is because sometimes the classifier may not have a bias, 
     # and PCA makes more sense with the mean than the bias.
-    def setup(self, args, train_model_outputs, train_labels):
+    def setup(self, args, train_model_outputs):
         feas_train = train_model_outputs['feas']
         logits_train = train_model_outputs['logits']
         

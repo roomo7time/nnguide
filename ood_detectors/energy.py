@@ -5,7 +5,7 @@ from ood_detectors.interface import OODDetector
 
 class EnergyOODDetector(OODDetector):
 
-    def setup(self, args, train_model_outputs, train_labels):
+    def setup(self, args, train_model_outputs):
         pass
 
     def infer(self, model_outputs):

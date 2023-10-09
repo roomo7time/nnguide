@@ -12,7 +12,8 @@ id_data_names=("imagenet1k")
 ood_data_names=("inaturalist" "sun" "places" "textures" "openimage-o")
 
 # ood_detectors choices
-ood_detectors=("energy" "nnguide" "msp" "maxlogit" "vim" "ssd" "mahalanobis" "knn")
+# ood_detectors=("energy" "nnguide" "msp" "maxlogit" "vim" "ssd" "mahalanobis" "knn")
+ood_detectors=("energy" "nnguide")
 
 # Convert array to string for the argument
 detectors_arg="${ood_detectors[*]}"

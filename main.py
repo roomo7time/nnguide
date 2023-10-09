@@ -10,12 +10,10 @@ from tabulate import tabulate
 from misc.utils_python import mkdir, import_yaml_config, save_dict, load_dict
 
 from model_engines.factory import create_model_engine
-from model_engines.interface import verify_model_outputs, get_model_outputs
+from model_engines.interface import verify_model_outputs
 from ood_detectors.factory import create_ood_detector
 
 from eval_assets import save_performance
-
-from dataloaders.factory import get_id_dataloader, get_ood_dataloader
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -41,18 +39,21 @@ def get_args():
                         default=8, 
                         help='number of workers')
     parser.add_argument('--train_data_name', '-td', type=str,  
-                        default='imagenet1k',
+                        # default='imagenet1k',
+                        default='cifar10',
                         choices=['imagenet1k'],
                         help='The data name for the in-distribution')
     parser.add_argument('--id_data_name', '-id', type=str,  
-                        default='imagenet1k',
+                        # default='imagenet1k',
+                        default='cifar10',
                         choices=['imagenet1k',
                                  'imagenet1k-v2-a', 
                                  'imagenet1k-v2-b', 
                                  'imagenet1k-v2-c'],
                         help='The data name for the in-distribution')
     parser.add_argument('--ood_data_name', '-ood', type=str, 
-                        default='inaturalist', 
+                        # default='inaturalist', 
+                        default='svhn', 
                         choices=['inaturalist', 'sun', 'places', 'textures', 'openimage-o']
                         )
     
@@ -82,13 +83,14 @@ def get_args():
     args.id_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.id_data_name}"
     args.ood_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.ood_data_name}"
 
-    args.model_save_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.train_data_name}/model.pt"
     args.detector_save_dir_path = f"{args.save_root_path}/seed-{args.seed}/{args.model_name}/{args.train_data_name}/detectors"
     
     mkdir(args.log_dir_path)
+    
     mkdir(args.train_save_dir_path)
     mkdir(args.id_save_dir_path)
     mkdir(args.ood_save_dir_path)
+
     mkdir(args.detector_save_dir_path)
 
     print(tabulate(list(vars(args).items()), headers=['arguments', 'values']))
@@ -125,12 +127,6 @@ def evaluate(args, ood_detector_name: str):
     model_engine.set_model(args)
     model_engine.set_dataloaders()
     
-    try:
-        model_engine.load_saved_model(torch.load(args.model_save_path)["model"])
-    except:
-        model = model_engine.train_model()
-        if model:
-            torch.save({"model": model}, args.model_save_path)
     
     save_dir_paths = {}
     save_dir_paths['train'] = args.train_save_dir_path
@@ -143,23 +139,18 @@ def evaluate(args, ood_detector_name: str):
     try:
         for fold in ['train', 'id', 'ood']:
             model_outputs[fold] = torch.load(f"{save_dir_paths[fold]}/model_outputs_{fold}.pt")
-            labels[fold] = torch.load(f"{save_dir_paths[fold]}/labels_{fold}.pt")
     except:
-        dataloaders = {}
-        dataloaders['train'] = model_engine.get_train_dataloader()
-        data_transform = model_engine.get_data_transform()
-
-        dataloaders['id'] = get_id_dataloader(args.data_root_path, args.id_data_name, args.batch_size, data_transform, num_workers=args.num_workers)
-        dataloaders['ood'] = get_ood_dataloader(args.data_root_path, args.ood_data_name, args.batch_size, data_transform, num_workers=args.num_workers)
-
+        model_engine.train_model()
+        model_outputs = {}
+        model_outputs['train'], model_outputs['id'], model_outputs['ood'] = model_engine.get_model_outputs()
         for fold in ['train', 'id', 'ood']:
-            _model_outputs, _labels = get_model_outputs(dataloaders[fold], model_engine.infer)
-            assert verify_model_outputs(_model_outputs)
-            torch.save(_model_outputs, f"{save_dir_paths[fold]}/model_outputs_{fold}.pt")
-            torch.save(_labels, f"{save_dir_paths[fold]}/labels_{fold}.pt")
-
-            model_outputs[fold] = _model_outputs
-            labels[fold] = _labels
+            
+            assert verify_model_outputs(model_outputs[fold])
+            torch.save(model_outputs[fold], f"{save_dir_paths[fold]}/model_outputs_{fold}.pt")
+    
+    labels = {}
+    labels['id'] = model_outputs['id']['labels']
+    labels['ood'] = model_outputs['ood']['labels']
 
     '''
     Executing ood detector
@@ -171,7 +162,8 @@ def evaluate(args, ood_detector_name: str):
         ood_detector = load_dict(saved_detector_path)["detector"]
     except:
         ood_detector = create_ood_detector(ood_detector_name)
-        ood_detector.setup(args, model_outputs['train'], labels['train'])
+        ood_detector.setup(args, model_outputs['train'])
+        
         print(f"[{args.model_name} / {ood_detector_name}]: saving detector...")
         save_dict({"detector": ood_detector}, saved_detector_path)
         print(f"[{args.model_name} / {ood_detector_name}]: detector saved!")
