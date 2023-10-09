@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 from torchvision.datasets import ImageFolder
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
+from torchvision.datasets import CIFAR10, CIFAR100, SVHN
 import imghdr
 from natsort import natsorted
 
@@ -111,8 +112,68 @@ class ImageNetOOD(Dataset):
         out = self.transform(img)
         return out, reject_target, target
 
+class CIFARData(Dataset):
+    def __init__(self, data_root_path, data_name, transform, train=True):
+        if data_name == "cifar10":
+            _dataset = CIFAR10(root=f"{data_root_path}/cifar10", train=train, download=True)
+        elif data_name == "cifar100":
+            _dataset = CIFAR100(root=f"{data_root_path}/cifar100", train=train, download=True)
+        else:
+            raise ValueError("Invalid dataset name")
+        
+        # Extracting samples and targets
+        self.data = [transforms.ToPILImage()(image) for image in _dataset.data]
+        self.targets = _dataset.targets
+
+        # Since CIFAR datasets don't have reject_targets in the provided scheme
+        self.reject_targets = [0] * len(self.targets)
+
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        img = self.data[index]
+        if self.transform:
+            img = self.transform(img)
+        return img, self.reject_targets[index], self.targets[index]
+    
+class SVHNData(Dataset):
+    def __init__(self, data_root_path, transform, train=True):
+
+        if train:
+            split = 'train'
+        else:
+            split = 'test'
+
+        _dataset = SVHN(root=data_root_path, split=split, download=True)
+        
+        # Convert the numpy arrays to PIL Images
+        self.data = [transforms.ToPILImage()(image) for image in _dataset.data.transpose((0, 2, 3, 1))]
+        self.targets = _dataset.labels.tolist()
+
+        # Since SVHN dataset doesn't have reject_targets in the provided scheme
+        self.reject_targets = [0] * len(self.targets)
+
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        img = self.data[index]
+        if self.transform:
+            img = self.transform(img)
+        return img, self.reject_targets[index], self.targets[index]
+
 def get_dataset(data_root_path, data_name, transform, 
                 train=True, ood=False):
+    
+    if data_name in ['cifar10', 'cifar100']:
+        return CIFARData(data_root_path, data_name, transform, train)
+    if data_name in ['svhn']:
+        return SVHNData(data_root_path, transform, train)
 
     if ood:
         return ImageNetOOD(data_root_path, data_name, transform)
@@ -146,9 +207,14 @@ def subsample(dataset, alpha=0.01, shuffle=True):
     idxes = np.arange(N)
     if shuffle:
         np.random.shuffle(idxes)
-    dataset.data = np.array(dataset.data)[idxes][:n]
-    dataset.targets = np.array(dataset.targets)[idxes][:n]
-    dataset.reject_targets = np.array(dataset.reject_targets)[idxes][:n]
+    # dataset.data = np.array(dataset.data)[idxes][:n]
+    # dataset.targets = np.array(dataset.targets)[idxes][:n]
+    # dataset.reject_targets = np.array(dataset.reject_targets)[idxes][:n]
+
+    dataset.data = [dataset.data[i] for i in idxes[:n]]
+    dataset.targets = [dataset.targets[i] for i in idxes[:n]]
+    dataset.reject_targets = [dataset.reject_targets[i] for i in idxes[:n]]
+
 
 
 

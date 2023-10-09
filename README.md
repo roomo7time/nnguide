@@ -1,6 +1,6 @@
 # Nearest Neighbor Guidance for Out-of-Distribution Detection
 
-This is the official repository of the paper Nearest Neighbor Guidance for Out-of-Distribution Detection ([arxiv](https://arxiv.org/abs/2309.14888))
+This is the official repository of the ICCV2023 paper Nearest Neighbor Guidance for Out-of-Distribution Detection ([arxiv](https://arxiv.org/abs/2309.14888))
 
 ## Setup
 
@@ -35,12 +35,15 @@ wget http://pages.cs.wisc.edu/~huangrui/imagenet_ood_dataset/SUN.tar.gz
 wget http://pages.cs.wisc.edu/~huangrui/imagenet_ood_dataset/Places.tar.gz
 ```
 Download Textures from the official [website](https://www.robots.ox.ac.uk/~vgg/data/dtd/).
-Download OpenImage-O from the official website.
+Download OpenImage-O from the official [website](https://github.com/haoqiwang/vim/tree/master/datalists).
+
+#### Debug: CIFAR, SVHN
+The datasets CIFAR10/100 and SVHN are provided only for the debugging purpose.
 
 ### Pretrained models
 Download `resnet50-supcon.pt` from the [link](https://www.dropbox.com/scl/fi/f3bfipk2o96f27vibpozb/resnet50-supcon.pt?rlkey=auxw68wcgqcx4ze6yhnmm395y&dl=0) and put it in the directory `pretrained_models` as `./pretrained_models/resnet50-supcon.py`.
 
-<!-- To fully reproduce the reported results, download `saved_model_outputs` from the [link](https://www.dropbox.com/scl/fi/74g87knhfjgaop0lu8oh1/saved_model_outputs.zip?rlkey=olo7b3dqvbzuzbkraa2uapt30&dl=0) and save it with the path `./saved_model_outputs`. -->
+To fully reproduce the reported results, download `saved_model_outputs` from the [link](https://www.dropbox.com/scl/fi/fk6a51cz4jsx83h6qpiar/saved_model_outputs.zip?rlkey=xfcyo1mntv8vrf74as1ono138&dl=0) and save it with the path `./saved_model_outputs`.
 
 ## Run Experiments
 
