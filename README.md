@@ -53,6 +53,23 @@ chmod +x run.sh
 ./run.sh
 ```
 
+## Visualization
+<table>
+  <tr>
+    <td align="center">
+      <img src="assets/knn.jpg" alt="KNN" width="250"/><br/>
+      <sub>KNN</sub>
+    </td>
+    <td align="center">
+      <img src="assets/classifier.jpg" alt="Classifier" width="250"/><br/>
+      <sub>Classifier</sub>
+    </td>
+    <td align="center">
+      <img src="assets/nnguide.jpg" alt="NNGuide" width="250"/><br/>
+      <sub>NNGuide</sub>
+    </td>
+  </tr>
+</table>
 
 ## Acknowledgements
 Parts of our codebase have been adopted from the official repositories for [KNN-OOD](https://github.com/deeplearning-wisc/knn-ood) and [VIM](https://github.com/haoqiwang/vim), and we benefited from the pretrained weights made available through these sources. Our code style is largely inspired by [OpenOOD](https://github.com/Jingkang50/OpenOOD).
